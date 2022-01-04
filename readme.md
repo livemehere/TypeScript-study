@@ -775,3 +775,227 @@ let 장바구니: NewItem[] = [
   { product: "청소기", price: 7000, card: false },
 ];
 ```
+
+# 🚀 TypeScript 심화
+
+## null & undefined 타입체크
+
+```ts
+function fn(a: string | undefined) {
+  if (a && typeof a === "string") {
+    // && 의 활용
+  }
+}
+```
+
+## Object를 검사고싶다면
+
+- Object는 typeof 로 되지않는다. typeof는 string,number...등 원시자료형만 가능하다
+- 이럴때 `in` 연산자를 사용하는데, in 은 객체 내부에 property가 있는지 조회해볼 수 있다
+
+> 하지만, 이것은 두개의 Type이 배타적일때만 가능하다. 서로에게 는 없는 고유한 속성이 있을때 말이다
+
+```ts
+type Fish = { swim: string };
+type Bird = { fly: string };
+
+function fn(animal: Fish | Bird) {
+  if ("swim" in animal) {
+    animal.swim;
+  }
+}
+```
+
+### 위의 경우를 해결하는방법 literal Type 활용
+
+- 이런식으로 속성이 같다면, 속성안에있는 type을 literal로 해두고 비교하면된다
+
+> 하지만 이 논재는 애초에 발생할 이유가없다, 구성이같으면 같은클래스니까....
+
+```ts
+type Car = { wheel: "4개" };
+type Bike = { wheel: "2개" };
+
+function fn(behicle: Car | Bike) {
+  if (behicle.wheel === "2개") {
+    // literal type 활용
+    behicle.wheel;
+  }
+}
+```
+
+## never type
+
+- never 타입은 사실 쓸이유가없다. void 타입으로 대체가 되기 떄문(그리고 조건도 억지임..내생각)
+- 그럼에도 불구하고 알고는있어야한다. 왜? 우리가 코드를 잘못짯을경우 never 타입이 등장할때가있다. 그때 왜그런지는 알아야한다.
+
+```ts
+// 함수가 never type을 가지는 조건 2개
+// 1. return 이 없어야한다
+// 2. End Point 가 없어야한다
+
+function fn(): never {
+  throw new Error(); // 2번조건을 위해서 함수가 종료되는것이아니라, error를 발생시킴으로서 endPoint를 없앰
+}
+
+function fn2(): never {
+  while (true) {
+    // 2번조건 무한루프
+  }
+}
+```
+
+### 코드를 이상하게 짜서 never가 발생하는경우
+
+- 이경우 파라미터는 string밖에 들어올 수없다. 그런데 else의 경우의수가 있는가? 없다. 그렇기때문에 있때 never 타입이 할당된다
+
+```ts
+function fn(parameter: string) {
+  if (typeof parameter === "string") {
+    console.log(parameter); //string
+  } else {
+    console.log(parameter); //never
+  }
+}
+```
+
+## public , private , protected, 사용가능
+
+- protected : extends된 class{} 내에서도 사용가능
+- static : 자식에게 물려주지 않는다.클래스 본인만 가지고있음 (new 연산을 이용했을 떄 없다는 말) && extends 하면 잘따라온다 (public, static 과 함꼐사용가능)
+
+```ts
+class User {
+  static x = 10;
+}
+
+let 자식 = new User();
+자식.x; //에러
+User.x; // 10
+```
+
+### static 조작하기 예시
+
+```ts
+class User {
+  private static x = 10;
+  public static y = 20;
+
+  static addOne(n: number) {
+    User.x += n;
+  }
+  static printX() {
+    console.log(User.x);
+  }
+}
+
+User.addOne(3); //이렇게 하면 x가 3 더해져야함
+User.addOne(4); //이렇게 하면 x가 4 더해져야함
+User.printX(); //이렇게 하면 콘솔창에 x값이 출력되어야함
+```
+
+## namespace 사용법(옛날방식)
+
+- 변수명이 겹치는것을 옛날에는 namespace를 지정해서 사용하였다
+
+```ts
+namespace GoodDog {
+  export type Dog = string;
+}
+
+namespace BadDog {
+  export interface Dog {
+    name: string;
+  }
+}
+
+let dog1: GoodDog.Dog = "bark";
+let dog2: BadDog.Dog = { name: "paw" };
+```
+
+## Generic 함수만들기
+
+- 타입을 유동적으로 하고싶다면
+
+### 기존
+
+```ts
+function fn(a: unknown[]) {
+  return a[0]; // 받은 배열의 첫번째 요소를 출력해주는 함수
+}
+
+let data = fn([4, 2]);
+console.log(typeof data); //unknown
+```
+
+### generic
+
+```ts
+function fn<MyType>(a: MyType[]): MyType {
+  return a[0]; // 받은 배열의 첫번째 요소를 출력해주는 함수
+}
+
+let data = fn<number>([4, 2]);
+console.log(typeof data); //number
+```
+
+> 일반적으로 <T>로 많이 표기함
+
+```ts
+function fn<T>(a: T[]): T {
+  return a[0]; // 받은 배열의 첫번째 요소를 출력해주는 함수
+}
+
+let data = fn<number>([4, 2]);
+console.log(typeof data); //number
+```
+
+> 이렇게 생성할때는 생략하면 유추함
+
+```ts
+function fn<T>(a: T[]): T {
+  return a[0]; // 받은 배열의 첫번째 요소를 출력해주는 함수
+}
+
+let data = fn([4, 2]);
+console.log(typeof data); //number
+```
+
+### generic 제한하기
+
+- extends 사용으로 타입 제약가능
+
+```ts
+function fn<T extends number>(a: T[]): T {
+  return a[0];
+}
+```
+
+## d.ts
+
+- type, interface 정의해놓은파일
+
+## \* as a
+
+- 어떤 파일의 export 된것을 모두 a로 가져오겟다
+
+## 모든 ts 파일은 export 를 따로하지않는이상 global이다
+
+## index signature
+
+- Obejct의 모든 속성 type 한방에 정의하기
+
+```ts
+interface StringOnly {
+  age: number;
+  [key: string]: string | number;
+}
+```
+
+## recursive 한 type
+
+```ts
+interface MyType{
+  'font-size':MyType | number
+}
+```

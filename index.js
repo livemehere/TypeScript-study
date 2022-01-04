@@ -1,6 +1,5 @@
-var 상품 = { brand: 'Samsung', serialNumber: 1360, model: ['TV', 'phone'] };
-var 장바구니 = [{ product: '청소기', price: 7000 }, { product: '삼다수', price: 800 }, { product: '청소기', price: 7000, card: false }];
-var obj = {
-    plus: function (a, b) { return a + b; },
-    minus: function (a, b) { return a - b; }
-};
+function fn(a) {
+    return a[0]; // 받은 배열의 첫번째 요소를 출력해주는 함수
+}
+var data = fn([4, 2]);
+console.log(typeof data); //number 
