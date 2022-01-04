@@ -1,15 +1,6 @@
-// 받은 문자열이 0으로시작한다면 0을제거하고 반환 하는 함수를 만들어라
-function cutZero(str) {
-    str = str.replace(/0/, "");
-    return str;
-}
-console.log(cutZero('0hih'));
-var removeDash = function (str) {
-    str = str.replace(/-/g, "");
-    return parseInt(str);
+var 상품 = { brand: 'Samsung', serialNumber: 1360, model: ['TV', 'phone'] };
+var 장바구니 = [{ product: '청소기', price: 7000 }, { product: '삼다수', price: 800 }, { product: '청소기', price: 7000, card: false }];
+var obj = {
+    plus: function (a, b) { return a + b; },
+    minus: function (a, b) { return a - b; }
 };
-console.log(removeDash('010-2220-1212'));
-var AllFn = function (str, callback1, callback2) {
-    return callback2(callback1(str));
-};
-console.log(AllFn('010-1111-2222', cutZero, removeDash));

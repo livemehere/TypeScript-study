@@ -452,3 +452,326 @@ let AllFn: All = (str, callback1, callback2) => {
 };
 console.log(AllFn("010-1111-2222", cutZero, removeDash));
 ```
+
+## 타입스크립트로 html 조작하기
+
+> DOM을 조작할때는 없는 값 즉, null 이 잡힐수있기 때문에, 항상 Element | null 인상태이다. 이럴때는 모호하기때문에 narrowing을 해주어야 이후 연산이나 작업이 가능하다
+
+```ts
+let 제목 = document.querySelector("#title");
+제목.innerHTML = "바보"; // Element or null 일수있음으로 모호함, 그래서 에러
+```
+
+### 해결책1
+
+```ts
+let 제목 = document.querySelector("#title");
+if (제목 != null) {
+  제목.innerHTML = "바보"; // Element or null 일수있음으로 모호함, 그래서 에러
+}
+```
+
+### 해결책2(가장많이 사용함)
+
+```ts
+let 제목 = document.querySelector("#title");
+if (제목 instanceof Element) {
+  제목.innerHTML = "바보";
+}
+```
+
+### 해결책3 as 사용하기(사용하면 안됨)
+
+- as 로 해결이가능하다, 이것은 타입을 강제로 단정짓는 것이다.
+- 만약 null 이들어왔다해도 type을 Element로 단정짓는 행위이기 때문에 이 경우에는 적절하지 못하다
+
+```ts
+let 제목 = document.querySelector("#title") as Element;
+if (제목) {
+  제목.innerHTML = "바보";
+}
+```
+
+### 해결책4 optional chaning 사용하기(신문법)
+
+- 제목안에 innerHTML이라는 속성이 있고 & undefined 아니면이 조건이다
+
+```ts
+let 제목 = document.querySelector("#title");
+if (제목?.innerHTML != undefined) {
+  제목.innerHTML = "바보";
+}
+```
+
+### 해결책5 tsconfig.json 수정하기
+
+- 이건 해결은 아니다(방법이 될수있음)
+
+```js
+{
+    "compilerOptions" : {
+      "target": "es5",
+      "module": "commonjs",
+      "noImplicitAny": true,
+      "strictNullChecks": true // 이거를 false로 바꿔주면 됨
+    }
+  }
+```
+
+## 다 Element는 아닙니다
+
+- 아래의 경우에는 a태그를 가져왔는데, a태그는 HTMLAnchorElement이다. Element를 상속받은 다른 객체
+
+```ts
+let a태그 = document.querySelector("#link");
+if (a태그 instanceof Element) {
+  a태그.href = "https://kakao.com"; //에러
+}
+
+// 이렇게 해야 에러안남
+let a태그 = document.querySelector("#link");
+if (a태그 instanceof HTMLAnchorElement) {
+  a태그.href = "https://kakao.com"; //에러
+}
+```
+
+## Optional chaning으로 narrowing 하기
+
+- 버튼의 addEventListener의 경우 객체를 가져온다음 그 메서드를 사용한다. 이경우에는 ?. 기호는 "있으면~~"이라는 뜻이기때문에 narrowing 효과가 나는것이다.
+
+```ts
+let btn = document.querySelector("#btn");
+btn?.addEventListener("click", () => {});
+```
+
+### a 태그처럼 assign에는 안됨
+
+```ts
+let a태그 = document.querySelector("#link");
+a태그?.href = "https://kakao.com"; // assign은 안됨 왜안되는지는 생각해보면 쉽게 이해될것임
+```
+
+### 연습문제
+
+- img태그의 src속성을 바꿔보기
+
+```ts
+let myimg = document.querySelector("#myimg");
+if (myimg instanceof HTMLImageElement) {
+  myimg.setAttribute("src", "kong.jpg");
+}
+
+//or
+
+// 메서드는 optional chaning으로 narrowing 가능
+let myimg = document.querySelector("#myimg");
+myimg?.setAttribute("src", "kong.jpg");
+```
+
+### 연습문제2
+
+- 모든 naver 클래스 요소를 가져와서 속성을 카카오로 바꾸시오
+
+```ts
+let naver = document.querySelectorAll(".naver");
+
+naver.forEach((item) => {
+  if (item instanceof HTMLAnchorElement) {
+    item.href = "https://kakao.com";
+  }
+});
+```
+
+## class
+
+- typescript 에서는 constructor에서 this.변수 로 사용할것을 최상위에서 선언해주어야 사용가능하다(javascript에서는 안해도 됨)
+
+```ts
+class Person {
+  name: string;
+
+  constructor(name: string) {
+    // :string 이렇게 type 지정을 해주지않아도된다. obect에서 반환하는것은 다 object이다
+    this.name = name;
+  }
+  add() {}
+}
+
+let p1 = new Person("kong");
+let p2 = new Person("ha");
+console.log(p1.name); // kong
+console.log(p2.name); // ha
+```
+
+### 그냥 class 팁
+
+- 1,2 번은 같은 뜻임 둘중하나의 방식으로 택하면되는데, 1번은 정의할때 넣는거고, 2번은 정의후 추가하는것이다. 모든 자식 object는 해당 함수를 가지게된다
+
+```ts
+class Person {
+  name: string;
+
+  constructor(name: string) {
+    this.name = name;
+  }
+  add(a: string): void {} //1
+}
+Person.prototype.add = function () {}; // 2
+```
+
+### 연습문제1
+
+```ts
+class Car {
+  model: string;
+  price: number;
+  constructor(model: string, price: number) {
+    this.model = model;
+    this.price = price;
+  }
+  tax(): number {
+    return this.price * 0.1;
+  }
+}
+
+let car1 = new Car("소나타", 3000);
+console.log(car1); //콘솔창 출력결과는 { model : '소나타', price : 3000 }
+console.log(car1.tax()); //콘솔창 출력결과는 300
+```
+
+### 연습문제2
+
+- 제한없는 파라미터 연습
+
+```ts
+class Word {
+  num: number[] = [];
+  str: string[] = [];
+  constructor(...args: (number | string)[]) {
+    args.forEach((item) => {
+      if (typeof item == "number") {
+        this.num.push(item);
+      } else if (typeof item == "string") {
+        this.str.push(item);
+      }
+    });
+  }
+}
+
+let obj = new Word("kim", 3, 5, "park");
+console.log(obj.num); //[3,5]
+console.log(obj.str); //['kim', 'park']
+```
+
+## class 는 type 대신 interface 사용가능
+
+```ts
+interface Person {
+  name: string;
+  age?: number;
+}
+
+let 학생: Person = { name: "kong" };
+let 선생: Person = { name: "ha", age: 24 };
+```
+
+### 혹은 extends 상용
+
+```ts
+interface Student {
+  name: string;
+}
+interface Teacher extends Student {
+  age?: number;
+}
+
+let 학생: Student = { name: "kong" };
+let 선생: Teacher = { name: "ha", age: 24 };
+```
+
+### type 도 비슷한기능 가능함
+
+```ts
+type Student = { name: string };
+type Teacher = { age: number } & Student;
+
+let 학생: Student = { name: "kong" };
+let 선생: Teacher = { name: "ha", age: 24 };
+```
+
+> 단 차이는 interface의 경우에는 다중 상속이 가능하다는 장점이있다.
+
+- 또한 아래의경우처럼 중복 선언도가능하다
+- 이경우 `Person{name:string,job:string}`이된다(유연하다)
+- type은 안됨(엄격하다)
+
+```ts
+interface Person {
+  name: string;
+}
+interface Person {
+  job: string;
+}
+```
+
+> 그래서 외부 라이브러리같은경우 interface로 도배가된경우가많다. 커스터마이징이 쉽도록 하기위해서이다. 내가만약 모듈을 만든다면 interface가 더 좋은 방안일것이다.
+
+### type의 속성 쭝복
+
+> 아래의 원인은 name은 중복이되어 string도 만족하고 number도 만족하는 자료형이와야하는데, 그건 말도 안된다.그래서 타입을 validate 해주는 순간이 사용할때라는 점이 interface와 또다른 차이점이다
+
+```ts
+type Person = { name: string };
+type Man = { name: number }; // 여기선  에러가안나지만
+
+let Kong: Man = { name: "kong" }; //여기선 에러가난다. 이경우에 type 이 'naver'이 된다
+```
+
+### 연습 예제들
+
+```ts
+interface Obj {
+  plus: (a: number, b: number) => number;
+  minus: (a: number, b: number) => number;
+}
+
+let obj: Obj = {
+  plus: function (a, b) {
+    return a + b;
+  },
+  minus: function (a, b) {
+    return a - b;
+  },
+};
+```
+
+```ts
+interface Product {
+  brand: string;
+  serialNumber: number;
+  model: string[];
+}
+
+let 상품: Product = {
+  brand: "Samsung",
+  serialNumber: 1360,
+  model: ["TV", "phone"],
+};
+```
+
+```ts
+interface Item {
+  product: string;
+  price: number;
+}
+
+interface NewItem extends Item {
+  card?: boolean;
+}
+
+let 장바구니: NewItem[] = [
+  { product: "청소기", price: 7000 },
+  { product: "삼다수", price: 800 },
+  { product: "청소기", price: 7000, card: false },
+];
+```

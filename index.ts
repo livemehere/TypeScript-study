@@ -1,24 +1,32 @@
 
-// 받은 문자열이 0으로시작한다면 0을제거하고 반환 하는 함수를 만들어라
-function cutZero(str:string):string{
-    str = str.replace(/0/,"")
-    return str;
+interface Product{
+    brand:string,
+    serialNumber:number,
+    model:string[]
 }
 
-console.log(cutZero('0hih'))
+let 상품:Product = { brand : 'Samsung', serialNumber : 1360, model : ['TV', 'phone'] }
 
-// 문자열을 받으면 - 를 제거해서 숫자로 반환하는 함수를 만들어라
-type myType = (str:string)=>number
-let removeDash:myType = (str)=>{
-    str = str.replace(/-/g,"");
-    return parseInt(str);
+
+interface Item{
+    product:string,
+    price:number
 }
-console.log(removeDash('010-2220-1212'))
 
-
-type All = (str:string,callback1:(str:string)=>string,callback2:(str:string)=>number)=>number
-
-let AllFn:All = (str,callback1,callback2)=>{
-    return callback2(callback1(str));
+interface NewItem extends Item{
+    card?:boolean
 }
-console.log(AllFn('010-1111-2222', cutZero, removeDash));
+
+
+let 장바구니:NewItem[] = [ { product : '청소기', price : 7000 }, { product : '삼다수', price : 800 },{ product : '청소기', price : 7000, card : false } ] 
+
+
+interface Obj{
+    plus:(a:number, b:number) => number,
+    minus:(a:number, b:number) => number
+}
+
+let obj:Obj = {
+    plus : function(a,b){return a+b},
+    minus : function(a,b){return a-b}
+}
