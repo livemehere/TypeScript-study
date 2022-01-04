@@ -236,3 +236,219 @@ console.log(pickLastOne({ subject: "math" })); //이 경우 'math'를 return
 console.log(pickLastOne({ subject: ["science", "art", "korean"] })); //이 경우 'korean'을 return
 pickLastOne({ hello: "hi" }); //이 경우 타입에러 나면 됩니다
 ```
+
+## type 변수만들기(type alias)
+
+```ts
+// 타입 변수로 담아서 사용하기
+// 대문자 시작이 국룰
+type Animal = string | number | undefined;
+let 동물: Animal = 123;
+```
+
+## readonly 속성
+
+- obejct의 property는 값을 수정할 수 있는데, 이를 막아주는 키워드이다
+
+> 하지만 개발환경에서 에러만 띄워줄 뿐 javascript 컴파일시에는 수정된다
+
+```ts
+const person: { readonly name: string; age: number } = {
+  name: "ha",
+  age: 25,
+};
+
+person.name = "kong"; // readonly 속성을 줄 경우 object의 값을 바꾸지못함
+```
+
+## type alias extend
+
+```ts
+type name = string;
+type age = number;
+type person = name | age; // 선언후 사용가능
+```
+
+```ts
+type X = { x: number };
+type Y = { y: number };
+
+type NewType = X & Y;
+
+let position: NewType = { x: 10, y: 20 };
+```
+
+## literal type
+
+```ts
+// literal type
+let person: "kong";
+person = "ha"; // kong 만 들어올수있음
+
+//union
+let me: "대머리" | "솔로";
+
+me = "대머리";
+me = "솔로";
+me = "멋쟁이"; // 에러
+```
+
+### 함수에서 유용하다!
+
+- literal type을 parameter 와 return 값으로 지정한다면 아주 유용한 함수가 될 수있다
+
+```ts
+function myfn(x: "yes" | "no"): 1 | 0 {
+  return 1;
+}
+
+myfn("sdf"); // 에러
+myfn("yes"); // OK
+```
+
+### 연습문제
+
+- 가위,바위,보 만을 입력받고, 배열을 리턴하는함수를 만들어라
+- 단, 배열에는 가위,바위,보만 들어갈수있다
+
+```ts
+function game(a: "가위" | "바위" | "보"): ("가위" | "바위" | "보")[] {
+  return ["가위", "보"];
+}
+
+console.log(game("가위"));
+```
+
+## literal type의 문제점
+
+Q. 자료.name은 'kong'인데 왜 에러가날까?
+A. 함수에서 지정한것은 'kong'이라는 타입이다. 'kong'이라는 값이아니라!
+
+```ts
+let 자료 = {
+  name: "kong",
+};
+
+function 함수(a: "kong") {}
+
+함수("kong"); // 에러안남
+함수(자료.name); //에러남 왜? 자료.name 은 타입이 string임
+```
+
+### 해결책1
+
+```ts
+let 자료: { name: "kong" } = {
+  name: "kong",
+};
+
+function 함수(a: "kong") {}
+
+함수(자료.name); // OK
+```
+
+### 해결책2
+
+```ts
+let 자료 = {
+  name: "kong",
+};
+
+function 함수(a: "kong") {}
+
+함수(자료.name as "kong"); //OK
+```
+
+### 해결책3
+
+```ts
+let 자료 = {
+  name: "kong",
+} as const;
+
+function 함수(a: "kong") {}
+
+함수(자료.name); // OK
+```
+
+- as const 키워드는 프로퍼티트을 각 값으로 type을 지정해달라는 것임
+- 프로퍼티 모두를 readonly로 변경해줌
+
+```ts
+let 자료 = {
+  name: "kong", //'kong' 타입
+  age: 24, //24 타입
+  arr: [1, 2, "hi"], // [1,2,'hi'] 타입
+} as const;
+
+function 함수(a: "kong") {}
+
+함수(자료.name); // OK
+```
+
+> 즉, object를 const 로 지정해버리는것임
+
+## 함수 type alias 만들어 부착하는 방법
+
+```ts
+type 함수타입 = (a: string) => number;
+
+let 함수: 함수타입 = function () {
+  return 1;
+};
+```
+
+## object 내의 메서드들 type 지정
+
+```ts
+type myType = {
+  name: string;
+  plusOne: (a: number) => number;
+  changeName: () => void;
+};
+
+let 회원정보: myType = {
+  name: "kim",
+  plusOne(a) {
+    return a + 1;
+  },
+  changeName: () => {},
+};
+```
+
+## 정규식과 함께 연습문제
+
+```ts
+// 받은 문자열이 0으로시작한다면 0을제거하고 반환 하는 함수를 만들어라
+function cutZero(str: string): string {
+  str = str.replace(/0/, "");
+  return str;
+}
+
+console.log(cutZero("0hih"));
+
+// 문자열을 받으면 - 를 제거해서 숫자로 반환하는 함수를 만들어라
+type myType = (str: string) => number;
+let removeDash: myType = (str) => {
+  str = str.replace(/-/g, "");
+  return parseInt(str);
+};
+console.log(removeDash("010-2220-1212"));
+```
+
+### 위 두함수를 파라미터로 받은 함수 두개를 만들어라
+
+- 위두함수와 문자열하나를 받고, 함수내에서 cutZero함수의결과를 removeDash함수로 넣고 그 결과값을 return 하는 함수를 만들어라
+
+```ts
+type All = (
+  str: string,
+  callback1: (str: string) => string,
+  callback2: (str: string) => number
+) => number;
+
+let AllFn: All = (str, callback1, callback2) => {
+  return callback2(callback1(str));
+};
+console.log(AllFn("010-1111-2222", cutZero, removeDash));
+```
